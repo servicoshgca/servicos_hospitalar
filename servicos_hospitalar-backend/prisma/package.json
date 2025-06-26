@@ -1,0 +1,17 @@
+{
+  "name": "prisma-seed",
+  "version": "1.0.0",
+  "main": "seed.ts",
+  "scripts": {
+    "seed": "ts-node seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.10.0",
+    "bcrypt": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+} 

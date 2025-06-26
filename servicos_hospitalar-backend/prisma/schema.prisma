@@ -1,0 +1,432 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabela de usuários
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  funcionarioId String   @unique
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id])
+  ativo         Boolean  @default(true)
+  ultimoAcesso  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relacionamentos
+  permissoes UserPermission[]
+  logs       Log[]
+
+  @@map("users")
+}
+
+model Funcionario {
+  id                    String   @id @default(cuid())
+  // Informações Pessoais
+  nome                  String
+  nomeSocial            String?
+  genero               String?
+  cpf                   String   @unique
+  rg                    String?
+  dataExpedicaoRg      DateTime?
+  orgaoExpedidorRg     String?
+  dataNascimento       DateTime?
+  naturalidade         String?
+  nacionalidade        String?
+  estadoCivil          String?
+  nomeMae              String?
+  nomePai              String?
+  tipoSanguineo        String?
+  fatorRh              String?
+  foto                 String?
+
+  // Documentos
+  tituloEleitor        String?
+  dataEmissaoTitulo    DateTime?
+  zonaEleitoral        String?
+  secaoEleitoral       String?
+  pisPasep             String?
+  ctps                 String?
+  serieCtps            String?
+  cartaoSus            String?
+  conselhoProfissional String?
+  numeroConselho       String?
+  dataExpedicaoConselho DateTime?
+  numeroReservista     String?
+  ministerio           String?
+  dispensado           Boolean?
+
+  // Contatos e Endereço
+  email                String?
+  telefoneResidencial  String?
+  telefoneCelular      String?
+  endereco             String?
+  cep                  String?
+  bairro               String?
+  complemento          String?
+  cidade               String?
+
+  // Estacionamento e Veículo
+  numeroEstacionamento String?
+  placaVeiculo         String?
+  tipoVeiculo          String?
+
+  // Formação Acadêmica
+  grauEscolaridade     String?
+  escolaridade         String? // Campo adicional para relatórios
+  faculdade            String?
+  dataIngresso         DateTime?
+  dataConclusao        DateTime?
+  formacaoProfissional String?
+  cbo                  String?
+
+  // Observações
+  observacoes          String?
+
+  // Campos de controle
+  ativo                Boolean  @default(true)
+  dataAdmissao         DateTime? // Campo adicional para relatórios
+  dataDesligamento     DateTime? // Campo adicional para relatórios
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relacionamentos
+  usuario              User?
+  informacoesFuncionais InformacaoFuncional[]
+  noticias             Noticia[]
+  etiquetas            FuncionarioEtiqueta[]
+  pedidosRefeicao      PedidoRefeicao[]
+  pedidosEntregues     PedidoEntregue[]
+  pedidosNaoEntregues  PedidoNaoEntregue[]
+
+  @@map("funcionarios")
+}
+
+model InformacaoFuncional {
+  id              String   @id @default(cuid())
+  funcionarioId   String
+  matricula       String   @unique
+  setorId         String
+  cargo           String
+  vinculoId       String
+  situacao        String   @default("ATIVO")
+  dataAdmissao    DateTime
+  dataDemissao    DateTime?
+  cargaHoraria    String
+  salario         Decimal
+  refeicao        Boolean  @default(true)
+  numeroPastaFisica String?
+  rhBahia         String?
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  funcionario     Funcionario @relation(fields: [funcionarioId], references: [id])
+  setor           Setor       @relation(fields: [setorId], references: [id])
+  vinculo         Vinculo     @relation(fields: [vinculoId], references: [id])
+
+  @@map("informacoes_funcionais")
+}
+
+// Tabela de setores/departamentos
+model Setor {
+  id          String @id @default(cuid())
+  nome        String @unique
+  descricao   String?
+  imagem      String? // URL da imagem do setor
+  telefone    String? // Telefone do setor
+  email       String? // Email do setor
+  coordenador String? // Nome do coordenador/diretoria
+  ativo       Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  informacoesFuncionais InformacaoFuncional[]
+  pedidosSetorPedido    PedidoRefeicao[] @relation("SetorPedido")
+
+  @@map("setores")
+}
+
+// Tabela de sistemas
+model Sistema {
+  id          String @id @default(cuid())
+  nome        String @unique
+  descricao   String?
+  ativo       Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  permissoes UserPermission[]
+
+  @@map("sistemas")
+}
+
+// Tabela de perfis/níveis de acesso
+model Perfil {
+  id          String @id @default(cuid())
+  nome        String @unique
+  descricao   String?
+  nivel       Int    // 1 = usuário comum, 2 = gestor, 3 = admin
+  ativo       Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  permissoes UserPermission[]
+
+  @@map("perfis")
+}
+
+// Tabela de permissões (relacionamento entre usuário, sistema e perfil)
+model UserPermission {
+  id        String   @id @default(cuid())
+  userId    String
+  sistemaId String
+  perfilId  String
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sistema Sistema @relation(fields: [sistemaId], references: [id], onDelete: Cascade)
+  perfil  Perfil  @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+
+  // Índices únicos para evitar duplicatas
+  @@unique([userId, sistemaId])
+  @@map("user_permissions")
+}
+
+// Tabela de vínculos/links
+model Vinculo {
+  id        String @id @default(cuid())
+  nome      String @unique
+  imagem    String?  // URL da imagem do vínculo
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relacionamentos
+  informacoesFuncionais InformacaoFuncional[]
+
+  @@map("vinculos")
+}
+
+// Tabela de notícias do sistema ASCOM
+model Noticia {
+  id          String   @id @default(cuid())
+  titulo      String
+  subtitulo   String?
+  conteudo    String   @db.Text
+  imagem      String?  // URL da imagem da notícia
+  videoUrl    String?  // URL do vídeo do YouTube
+  autorId     String
+  publicada   Boolean  @default(false)
+  dataPublicacao DateTime?
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  autor       Funcionario @relation(fields: [autorId], references: [id])
+
+  @@map("noticias")
+}
+
+// Tabela de tipos de etiquetas para atestados e licenças
+model TipoEtiqueta {
+  id          String @id @default(cuid())
+  nome        String @unique
+  icone       String // Nome do ícone (ex: "medical", "calendar", "document", etc.)
+  descricao   String?
+  cor         String? // Cor da etiqueta (ex: "#FF0000", "#00FF00", etc.)
+  ativo       Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  etiquetasFuncionarios FuncionarioEtiqueta[]
+
+  @@map("tipos_etiquetas")
+}
+
+// Tabela de etiquetas dos funcionários
+model FuncionarioEtiqueta {
+  id              String   @id @default(cuid())
+  funcionarioId   String
+  tipoEtiquetaId  String
+  dataInicio      DateTime
+  dataFim         DateTime?
+  arquivoPdf      String?  // Nome do arquivo PDF
+  observacoes     String?  @db.Text
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  funcionario     Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  tipoEtiqueta    TipoEtiqueta @relation(fields: [tipoEtiquetaId], references: [id], onDelete: Cascade)
+
+  @@map("funcionario_etiquetas")
+}
+
+// Tabela de logs de ações dos usuários
+model Log {
+  id              String   @id @default(cuid())
+  acao            String   // CREATE, UPDATE, DELETE
+  entidade        String   // Nome da entidade (ex: "TipoEtiqueta", "Funcionario", "Noticia")
+  entidadeId      String   // ID da entidade afetada
+  sistema         String   // Sistema que gerou o log (ex: "GP", "ASCOM", "REFEITORIO")
+  dadosAnteriores String?  @db.Text // JSON dos dados antes da alteração
+  dadosNovos      String?  @db.Text // JSON dos dados após a alteração
+  usuarioId       String   // ID do usuário que executou a ação
+  ip              String?  // IP do usuário
+  userAgent       String?  // User agent do navegador
+  createdAt       DateTime @default(now())
+
+  // Relacionamentos
+  usuario         User     @relation(fields: [usuarioId], references: [id])
+
+  @@map("logs")
+}
+
+// Configurações do sistema de refeitório
+model ConfiguracaoRefeitorio {
+  id                    String   @id @default(cuid())
+  valorCafe             Decimal  @default(0)
+  valorAlmoco           Decimal  @default(0)
+  valorJantar           Decimal  @default(0)
+  valorCeia             Decimal  @default(0)
+  
+  // Horários do refeitório por tipo de refeição
+  horarioInicioCafe     String  @default("06:00") // HH:MM
+  horarioFimCafe        String  @default("10:00") // HH:MM
+  horarioInicioAlmoco   String  @default("11:00") // HH:MM
+  horarioFimAlmoco      String  @default("14:00") // HH:MM
+  horarioInicioJantar   String  @default("17:00") // HH:MM
+  horarioFimJantar      String  @default("20:00") // HH:MM
+  horarioInicioCeia     String  @default("20:00") // HH:MM
+  horarioFimCeia        String  @default("22:00") // HH:MM
+  
+  // Horários para pedidos por tipo de refeição
+  horarioInicioPedidosCafe   String  @default("06:00") // HH:MM
+  horarioFimPedidosCafe      String  @default("09:00") // HH:MM
+  horarioInicioPedidosAlmoco String  @default("10:00") // HH:MM
+  horarioFimPedidosAlmoco    String  @default("13:00") // HH:MM
+  horarioInicioPedidosJantar String  @default("16:00") // HH:MM
+  horarioFimPedidosJantar    String  @default("19:00") // HH:MM
+  horarioInicioPedidosCeia   String  @default("19:00") // HH:MM
+  horarioFimPedidosCeia      String  @default("21:00") // HH:MM
+  
+  // Horários para dietas (mantém um só)
+  horarioInicioDietas   String  @default("06:00") // HH:MM - Horário para solicitar dietas
+  horarioFimDietas      String  @default("20:00") // HH:MM - Horário para solicitar dietas
+  
+  ativo                 Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("configuracoes_refeitorio")
+}
+
+// Cardápios do refeitório
+model Cardapio {
+  id          String   @id @default(cuid())
+  data        DateTime @unique // Data do cardápio
+  imagem      String   // URL da imagem do cardápio
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relacionamentos
+  pedidos     PedidoRefeicao[]
+
+  @@map("cardapios")
+}
+
+// Pedidos de refeição
+model PedidoRefeicao {
+  id              String   @id @default(cuid())
+  funcionarioId   String
+  cardapioId      String
+  tipoRefeicao    String   // CAFE, ALMOCO, JANTAR, CEIA
+  dataRefeicao    DateTime
+  status          String   @default("PENDENTE") // PENDENTE, CONFIRMADO, CANCELADO
+  observacoes     String?
+  
+  // Opções do formulário (JSON)
+  opcoes          String?  @db.Text // JSON com as opções selecionadas
+  
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Novo campo para setor do pedido
+  setorPedidoId   String?
+  setorPedido     Setor?   @relation("SetorPedido", fields: [setorPedidoId], references: [id])
+
+  // Relacionamentos
+  funcionario     Funcionario @relation(fields: [funcionarioId], references: [id])
+  cardapio        Cardapio    @relation(fields: [cardapioId], references: [id])
+  entregas        PedidoEntregue[]
+  naoEntregas     PedidoNaoEntregue[]
+
+  @@map("pedidos_refeicao")
+}
+
+// Pedidos entregues (check-in no self-service)
+model PedidoEntregue {
+  id              String   @id @default(cuid())
+  funcionarioId   String
+  pedidoRefeicaoId String?  // Opcional, pode ser null se não houver pedido prévio
+  tipoRefeicao    String   // CAFE, ALMOCO, JANTAR, CEIA
+  dataRefeicao    DateTime
+  dataEntrega     DateTime @default(now())
+  observacoes     String?
+  
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  funcionario     Funcionario @relation(fields: [funcionarioId], references: [id])
+  pedidoRefeicao  PedidoRefeicao? @relation(fields: [pedidoRefeicaoId], references: [id])
+
+  @@map("pedidos_entregues")
+}
+
+// Pedidos não entregues (após fim do horário de funcionamento)
+model PedidoNaoEntregue {
+  id              String   @id @default(cuid())
+  funcionarioId   String
+  pedidoRefeicaoId String?  // Opcional, pode ser null se não houver pedido prévio
+  tipoRefeicao    String   // CAFE, ALMOCO, JANTAR, CEIA
+  dataRefeicao    DateTime
+  dataNaoEntrega  DateTime @default(now())
+  observacoes     String?
+  
+  ativo           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relacionamentos
+  funcionario     Funcionario @relation(fields: [funcionarioId], references: [id])
+  pedidoRefeicao  PedidoRefeicao? @relation(fields: [pedidoRefeicaoId], references: [id])
+
+  @@map("pedidos_nao_entregues")
+}

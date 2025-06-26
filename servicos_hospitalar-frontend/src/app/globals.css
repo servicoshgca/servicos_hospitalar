@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos personalizados para o slideshow de notícias */
+.noticias-slideshow {
+  padding-bottom: 80px;
+}
+
+.noticias-slideshow .swiper-button-next,
+.noticias-slideshow .swiper-button-prev {
+  color: #4f46e5;
+  background: white;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 2px solid #f3f4f6;
+}
+
+.noticias-slideshow .swiper-button-next:hover,
+.noticias-slideshow .swiper-button-prev:hover {
+  background: #f8fafc;
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  border-color: #e5e7eb;
+}
+
+.noticias-slideshow .swiper-button-next::after,
+.noticias-slideshow .swiper-button-prev::after {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.noticias-slideshow .swiper-pagination-bullet {
+  background: #d1d5db;
+  opacity: 1;
+  width: 12px;
+  height: 12px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.noticias-slideshow .swiper-pagination-bullet-active {
+  background: #4f46e5;
+  transform: scale(1.2);
+  border-color: #e0e7ff;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+/* Estilos para o carrossel antigo (mantidos para compatibilidade) */
+.noticias-swiper {
+  padding-bottom: 50px;
+}
+
+.noticias-swiper .swiper-button-next,
+.noticias-swiper .swiper-button-prev {
+  color: #2563eb;
+  background: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.noticias-swiper .swiper-button-next:hover,
+.noticias-swiper .swiper-button-prev:hover {
+  background: #f8fafc;
+}
+
+.noticias-swiper .swiper-button-next::after,
+.noticias-swiper .swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.noticias-swiper .swiper-pagination-bullet {
+  background: #cbd5e1;
+  opacity: 1;
+}
+
+.noticias-swiper .swiper-pagination-bullet-active {
+  background: #2563eb;
+}
+
+/* Utilitários para truncar texto */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
